@@ -1941,7 +1941,7 @@ input, select, textarea {
 		position: relative;
 		display: inline-block;
 		border-radius: 0.5em;
-		color: rgb(22, 63, 151) !important;
+		color: #0D1117 !important;
 		text-decoration: none;
 		padding: 0.3em 0.1em;
 		background-color: transparent;
@@ -1982,7 +1982,7 @@ input, select, textarea {
 	}
 
 		.item header {
-			background: #fff;
+			background: #0D1117;
 			margin: 0;
 			padding: 1em 0 1em 0;
 			font-size: 0.8em;
@@ -2160,13 +2160,13 @@ input, select, textarea {
 					}
 
 				#nav ul li a.active {
-					background: rgba(0, 0, 0, 0.15);
+					background: #010409;
 					box-shadow: inset 0 0 0.25em 0 rgba(0, 0, 0, 0.125);
 					color: #fff;
 				}
 
 					#nav ul li a.active span:before {
-						color: #e27689;
+						color: #00006B;
 					}
 
 /* Footer */
@@ -2249,15 +2249,15 @@ input, select, textarea {
 			}
 
 			#main > section.two {
-				background-color: #f5fafa;
+				background-color: #0D1117;
 			}
 
 			#main > section.three {
-				background-color: #ecf1f1;
+				background-color: #010409;
 			}
 
 			#main > section.four {
-				background-color: #e8edec;
+				background-color: #30363D;
 			}
 
 /* Wide */
@@ -2437,7 +2437,7 @@ input, select, textarea {
 				width: 275px;
 				z-index: 10002;
 				width: 275px;
-				background: #222729 url("images/overlay.png");
+				background: #0D1117 url("images/overlay.png");
 				box-shadow: inset -0.25em 0 0.25em 0 rgba(0, 0, 0, 0.125);
 			}
 
@@ -2506,16 +2506,16 @@ input, select, textarea {
 					#headerToggle .toggle:before {
 						text-decoration: none;
 						content: '\f0c9';
-						color: #fff;
+						color: #61605B;
 						font-size: 18px;
-						background: rgba(128, 136, 144, 0.5);
+						background: #010409;
 						border-radius: 0.35em;
 						text-align: center;
 						position: absolute;
 						left: 0.5em;
 						top: 0.5em;
 						display: block;
-						width: 3.25em;
+						width: 2.25em;
 						height: 2.25em;
 						line-height: 2.25em;
 					}
