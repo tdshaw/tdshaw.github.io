@@ -77,7 +77,7 @@ input, select, textarea {
 	}
 
 	body {
-		background: #fff;
+		background: #000;
 		font-family: 'Source Sans Pro', sans-serif;
 		font-size: 19pt;
 		font-weight: 300;
@@ -126,12 +126,13 @@ input, select, textarea {
 
 
 	h2.alt strong {
-		font-size: 5vw;
+		font-size: 10vw;
 	}
 
 	h2.alt p {
-		color: #9DB2BF;
-		font-size: 3vw;
+		color: #FFFFFF;
+		font-family: 'Garamond';
+		font-size: 5vw;
 	}
 
 	h3 {
@@ -1941,7 +1942,7 @@ input, select, textarea {
 		position: relative;
 		display: inline-block;
 		border-radius: 0.5em;
-		color: #0D1117 !important;
+		color: #E4E4E4 !important;
 		text-decoration: none;
 		padding: 0.3em 0.1em;
 		background-color: transparent;
@@ -2166,7 +2167,37 @@ input, select, textarea {
 				}
 
 					#nav ul li a.active span:before {
-						color: #00006B;
+						color: #7E9BFB;
+					}
+
+				#nav ul li span {
+					position: relative;
+					display: block;
+					font-size: 0.8em;
+					padding: 0.5em 1.5em 0.5em 1.5em;
+					color: rgba(255, 255, 255, 0.5);
+					text-decoration: none;
+					outline: 0;
+					border: 0;
+					-moz-transition: none;
+					-webkit-transition: none;
+					-ms-transition: none;
+					transition: none;
+				}
+
+					#nav ul li a span:before {
+						position: absolute;
+						left: 0;
+						color: #41484c;
+						text-align: center;
+						width: 1.25em;
+						line-height: 1.75em;
+					}
+
+					#nav ul li span.active {
+						background: #010409;
+						box-shadow: inset 0 0 0.25em 0 rgba(0, 0, 0, 0.125);
+						color: #fff;
 					}
 
 /* Footer */
@@ -2224,7 +2255,8 @@ input, select, textarea {
 				}
 
 				#main > section.dark strong {
-					color: #27374D;
+					color: #FFF;
+					font-family: Garamond;
 					border-color: inherit;
 				}
 
@@ -2245,7 +2277,7 @@ input, select, textarea {
 
 			#main > section.one {
 				background-color: #81918E;
-				background-image: url("../../images/banner.jpg");
+				background-image: url("../../images/Server_Background.png");
 			}
 
 			#main > section.two {
