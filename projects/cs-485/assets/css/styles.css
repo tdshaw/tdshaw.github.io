@@ -1,9 +1,9 @@
 .sliders {
-    width: 8%;
+    width: 9%;
     height: 0px;
 }
 .sliders input[type="range"] {
-    width: 85%;
+    width: 75%;
 }
 .sliders input[type=range]:focus {
     outline: none;
@@ -76,4 +76,19 @@
     background-color: teal;
     top: 8px;
     left: 10px;
+}
+
+.return-button {
+    position: absolute;
+    left: 500px;
+    top: 15px;
+}
+
+.button {
+    background-color: #3071A9;
+    border-radius: 100%;
+    border-width: 3px;
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    font-size: 20px;
+    color: rgb(255, 255, 255);
 }
