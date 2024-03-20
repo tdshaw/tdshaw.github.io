@@ -255,6 +255,58 @@ input, select, textarea {
 
 		}
 
+		/* LANDING PAGE TITLE */
+		.title-container { 
+			position: relative; 
+			display: flex; 
+			justify-content: center; 
+			align-items: center; 
+		  } 
+		   
+		  .title-container::before { 
+			content: ""; 
+			display: block; 
+			position: absolute; 
+			top: 0; 
+			left: 0; 
+			width: 100%; 
+			height: 100%; 
+			background-color: rgba(24,35,48,0.9); 
+			z-index: -1; 
+		} 
+
+		.title-container header {
+			clip-path: inset(0 0 30% 0);
+			border-radius: 50%; 
+			background-color: rgba(24,35,48,0.9); 
+			padding-top: 5%;
+		}
+
+		.title-container h2.alt {
+			letter-spacing: -1px;
+			padding-top: 7%;
+		}
+	
+		.title-container h2.alt strong {
+			position: relative; 
+			z-index: 1; 
+			text-align: center; 
+			text-shadow: 3px 3px #0E3926;
+			font-size: 10vw; 
+			font-weight: bold; 
+		}
+		   
+		  .title-container h2.alt p { 
+			position: relative; 
+			z-index: 1; 
+			text-align: center; 
+			text-shadow: 3px 3px #0E3926;
+			font-size: 5vw; 
+			font-weight: bold; 
+			color: #81A0F9; 
+			padding-top: 5%;  
+		  } 
+
 /* Row */
 
 	.row {
