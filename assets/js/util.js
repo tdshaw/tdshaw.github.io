@@ -72,7 +72,7 @@
 					hideOnClick: false,
 
 				// Hide panel on escape keypress.
-					hideOnEscape: false,
+					hideOnEscape: true,
 
 				// Hide panel on swipe.
 					hideOnSwipe: false,
@@ -266,10 +266,11 @@
 
 		// Body.
 
+			/* UNCOMMENT THIS -> Navigation Panel will hide when main page is clicked (annoying for links) */
 			// Event: Hide panel on body click/tap.
-				$body.on('click touchend', function(event) {
-					$this._hide(event);
-				});
+				// $body.on('click touchend', function(event) {
+				// 	$this._hide(event);
+				// });
 
 			// Event: Toggle.
 				$body.on('click', 'a[href="#' + id + '"]', function(event) {
