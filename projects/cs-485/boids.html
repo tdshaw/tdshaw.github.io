@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+    <Head>
+        <title>2D-Animation-Boids</title>
+        <script src="assets/js/vector.js"></script>
+        <script src="assets/js/sprite.js"></script>
+        <link rel="stylesheet" href="assets/css/styles.css"/>
+    </Head>
+    <body style = "background: url('images/Polluted_Ocean.png') no-repeat center center fixed;
+	    -webkit-background-size: cover; -moz-background-size: cover;
+	    -o-background-size: cover; background-size: cover; background-color: black">
+        <div class="sliders">
+            <div class="sliderbox"></div>
+            <input type="range" min="0" max="5" value="1.5" step="0.05" class="slider" id="alignment"/>
+            <input type="range" min="0" max="5" value="1.2" step="0.05" class="slider" id="cohesion"/>
+            <input type="range" min="1" max="5" value="1.5" step="0.05" class="slider" id="separation"/>
+            <div class = "slidertitles">
+                <alignment>Alignment</alignment>
+                <cohesion>Cohesion</cohesion>
+                <separation>Separation</separation>
+            </div>
+        </div>
+        <canvas id="canvas"></canvas>
+        <script>
+            // Declare variables
+			var init_size = true;                                                   // Flag for initial size of canvas
+            var context = canvas.getContext('2d', { willReadFrequently: true });	// Get the context of the canvas and set flag for frequent reads (Chrome issue)
+            const MyFlock = new Flock(context);                                     // Create a new flock object for the boids
+            var alignSlider = document.getElementById("alignment");
+            var cohesionSlider = document.getElementById("cohesion");
+            var separationSlider = document.getElementById("separation");
+
+            window.addEventListener('resize', resizeCanvas, false);	// Allow resizing of canvas for entire window
+
+            /*******************************************************
+             * Allows the canvas to resize to fit the entire screen
+               when the user resizes the window
+            *******************************************************/
+            function resizeCanvas() {
+                canvas.width = window.innerWidth; 	// Get screen width
+                canvas.height = window.innerHeight; // Get screen height
+                
+                // If flag is false then resizing needs to happen
+                if(init_size) {
+                    init_size = false;
+                    return;
+                }	
+
+                // Loop through agents list and resize canvas
+                for(var i = 0; i < agents.length; ++i) {
+                    agents[i].canvas_resize();
+                }
+            }
+
+            /*********************************************
+             * Activates when alignment slider is changed
+            *********************************************/
+            alignment.oninput = function() {
+                MyFlock.getAlignment(alignSlider); // Update alignment value
+            }
+
+            /*********************************************
+             * Activates when cohesion slider is changed
+            *********************************************/
+            cohesion.oninput = function() {
+                MyFlock.getCohesion(cohesionSlider); // Update cohesion value
+            }
+
+            /**********************************************
+             * Activates when separation slider is changed
+            **********************************************/
+            separation.oninput = function() {
+                MyFlock.getSeparation(separationSlider); // Update separation value
+            }
+
+            /******************************************
+             * Initializes all values for the flock's 
+               inputs array
+            ******************************************/
+            function fillInputArray() {
+                MyFlock.getAlignment(alignSlider);
+                MyFlock.getCohesion(cohesionSlider);
+                MyFlock.getSeparation(separationSlider);
+            }
+
+            /*******************************************************
+			 * Continuously requests animation frames from the page
+			   Can allow different sprites to animate at the same 
+			   time with different animations
+			*******************************************************/
+			function drawLoop() {
+				window.requestAnimationFrame(drawLoop); // Request another frame
+
+                MyFlock.drawFlock(); // Draw the boids in the flock
+			}
+
+            resizeCanvas(); // Resize canvas
+
+            fillInputArray(); // Fill the inputs array in MyFlock
+
+            MyFlock.createFlock(); // Create the flock of boids
+
+            drawLoop(); // Start the draw loop
+        </script>
+    </body>
+</html>
+
