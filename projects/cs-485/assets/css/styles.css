@@ -1,6 +1,11 @@
+html {
+    box-sizing: border-box;
+}
+
 .sliders {
     width: 9%;
     height: 0px;
+    box-sizing: border-box;
 }
 .sliders input[type="range"] {
     width: 75%;
@@ -82,6 +87,7 @@
     position: absolute;
     left: 500px;
     top: 15px;
+    box-sizing: border-box;
 }
 
 .button {

@@ -2411,7 +2411,7 @@ input, select, textarea {
 		display: none;
 	}
 
-	@media screen and (max-width: 2000px) { /* Changes when header automatically pops out! */
+	@media screen and (min-width: 0px) and (max-width: 2000px) { /* Changes when header automatically pops out! */
 
 		/* Basic */
 
