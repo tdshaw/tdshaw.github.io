@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+	<Head>
+		<title>2-D Sprite Animation</title>
+		<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+		<script src="assets/js/sprite.js"></script>
+		<link rel="stylesheet" href="assets/css/sprite_styles.css" />
+		<link rel="icon" type="image/png" href="images/Gengar.png">
+	</Head>
+	<body style = "background: url('images/Melted_Artic_Water.png') no-repeat center center fixed; 
+	-webkit-background-size: cover; -moz-background-size: cover; -o-background-size: cover; 
+	background-size: cover; overflow: hidden">
+		<canvas id="canvas"></canvas>
+		<div class="center">
+			<div class="wrapper">
+				<h2>Instructions</h2>
+				<p>To move the penguin: left, right, up, down arrow keys
+					<br>To stop the penguin: press the space bar
+					<br>Upon collision just move the penguin away from the other to stop the message from repeating.
+				</p>
+			</div>
+		</div>
+		<script>
+			// Declare variables
+			var init_size = true; 													// Flag for initial size of canvas
+			var context = canvas.getContext('2d', { willReadFrequently: true });	// Get the context of the canvas and set flag for frequent reads (Chrome issue)	
+			const PlayerPenguin = new UserPenguin(context); 						// Create a player penguin sprite object (name, x, y, h, w, context)
+			const Penguin1 = new NPCPenguin(context);								// Create an NPC penguin to interact with the player
+
+			// Load the JSON file and store data in Penguin sprite object
+			$.getJSON("penguin/animationData.json", function(data){
+				PlayerPenguin.frames = data;	// JSON is now loaded into Penguin object
+				Penguin1.frames = data;
+				console.log(data);
+			});
+
+			window.addEventListener('resize', resizeCanvas, false);	// Allow resizing of canvas for entire window
+
+			/*****************************************************
+			 Allows the canvas to resize to fit the entire screen
+			 when the user resizes the window
+			*****************************************************/
+			function resizeCanvas() {
+				canvas.width = window.innerWidth; 	// Get screen width
+				canvas.height = window.innerHeight; // Get screen height
+				
+				// If flag is false then resizing needs to happen
+				if(init_size) {
+					init_size = false;
+					return;
+				}	
+
+				// Loop through agents list and resize canvas
+				for(var i = 0; i < agents.length; ++i) {
+					agents[i].canvas_resize();
+				}
+			}
+
+			/*****************************************************
+			 Continuously requests animation frames from the page
+			 Can allow different sprites to animate at the same 
+			 time with different animations
+			*****************************************************/
+			function drawLoop() {
+				window.requestAnimationFrame(drawLoop); // Request another frame
+
+				PlayerPenguin.draw(); // Start Player Penguin sprite animations
+				Penguin1.draw();
+			}
+
+			resizeCanvas(); // Call on window resize function
+
+			PlayerPenguin.worldview = [Penguin1];
+			Penguin1.worldview = [PlayerPenguin];
+
+			drawLoop(); // Start the draw loop
+		</script>
+	</body>
+</html>

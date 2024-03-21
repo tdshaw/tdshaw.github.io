@@ -1,0 +1,30 @@
+html {
+    box-sizing: border-box;
+}
+
+h2 {
+    color: #000;
+    font-size: 2vw;
+}
+
+p {
+    color: #000;
+    font-size: 1vw;
+}
+
+.center {
+    text-align: center;
+}
+
+    .center > div {
+        margin: 0px auto;
+    }
+
+.wrapper {
+    position: absolute; 
+    left: 25%;
+    top: 0%; 
+    width:50%; 
+    height: 0%;
+    z-index: -1;
+}

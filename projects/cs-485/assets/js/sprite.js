@@ -9,399 +9,617 @@ function randomNum(min, max) {
 
 /********************* CLASS DEFINITIONS *****************************************/
 
-/*************************************************
- * Parent class for all sprites
+/******************************************************
+ * Parent class for penguin sprites
  * This class contains:
+    * x,y positions on canvas
+    * Height and width of sprite
     * A container for the animation frames
     * A container for the animation image
     * A counter for current animation frame
     * A container for background canvas image
     * A container for the context of the canvas
     * A tracker for the previous animation time
-    * A variable for the animation speed
- *************************************************/
+    * A container for the worldview for each sprite
+    * A container for the number of frames per animation
+ *******************************************************/
 class Sprite {
     constructor(context) {
         this.frames = [];                       // Container for JSON data
         this.img = null;                        // Container for the animation frames
-        this.frame_idx = -1;                    // Counter for current animation frame
+        this.cur_frame = -1;                    // Counter for current animation frame
         this.bk_img = null;                     // Container for background canvas
-        this.ctx = context;                     // Container for the context of the canvas
+        this.context = context;                 // Container for the context of the canvas
         this.prev_time = new Date().getTime();  // Tracks the last animation frame time
-        this.t_delta = 0;                       // Animation speed
+        this.worldview = [];                    // Container for all other sprites on canvas
+        this.num_frames = 0;                    // Container for the number of frames in an animation
     }
 
     /*******************************************************************
      Returns the background image data for clearing the previous image
     *******************************************************************/
     get_bk_img(x, y, w, h) {
-        this.bk_img = this.ctx.getImageData(x, y, w, h);
+        this.bk_img = this.context.getImageData(x, y, w, h);
     }
 
     /******************************************************************************
      Places the background image data onto the canvas to clear the previous image
     ******************************************************************************/
     put_bk_img(x, y) {
-        this.ctx.putImageData(this.bk_img, x, y);
+        this.context.putImageData(this.bk_img, x, y);
     }
 
     /*******************************************************
      Draws the current image for the sprite onto the canvas
     *******************************************************/
     drawFrame(x, y, w, h) {
-        this.ctx.drawImage(this.img, x, y, w, h);
+        this.context.drawImage(this.img, x, y, w, h);
     }
 }
 
-/************************************************************************
- * Boids class for the sprites
+/*******************************************************
+ * NPCPenguin class for the sprites
  * It will access the Sprite class properties for
-    * canvas context
+    * Canvas context
  * Class adds:
-    * The separate buffer canvas for each boid
-    * The separate buffer context for each boid 
-    * The position vector of the boids
-    * The width and height of the boids
-    * The velocity of the boids
-    * The acceleration of the boids
-    * The perception radius of the boids
-    * The maximum velocity the boids can acheive
-    * The maximum acceleration force the boids can acheive
-    * The scaling factor for the width and height of the boids
-    * The worldview array (the flock array from Flock class)
-    * The properties array (changes made from sliders on html page)
- ************************************************************************/
-class Boid extends Sprite {
+    * The buffer canvas and context for the sprite
+    * The name of the penguin sprite
+    * The x,y,w,h for the sprite image
+    * The idle animation time
+    * The walking animation time
+    * The time alloted for random animation changes
+    * The amount of time spent in current animation
+    * The time delta for the animation speeds (t_delta)
+        * Adds deltas for different states  
+    * The state of the penguin's animation
+    * The flag for state changes
+    * The movement distance for walking animations
+ *******************************************************/
+class NPCPenguin extends Sprite {
     constructor(context) {
         super(context);
-        this.canvas = document.createElement('canvas');         // Each boid gets its own buffer canvas
+        this.canvas = document.createElement('canvas');     // Each penguin gets its own buffer canvas
         this.buffer = this.canvas.getContext('2d', 
-            { willReadFrequently: true });                      // Each boid gets its own context to draw with
-        this.position = 
-            new Vector_2D(randomNum(0, window.innerWidth*0.8), 
-            randomNum(0, window.innerHeight*0.8));              // Coordinate position of boids on canvas
-        this.w_h = [0, 0];                                          // Width and height of boids
-        this.velocity = new Vector_2D(randomNum(0, 2), 
-            randomNum(0, 4));                                   // Velocity of boids
-        this.acceleration = new Vector_2D();                    // Acceleration of boids (Zero vector by default)
-        this.vis_rad = 50;                                      // Visual radius for boids interaction 
-        this.maxVelocity = 6;                                   // Maximum velocity boids may acheive
-        this.maxAcceleration = 1;                               // Maximum acceleration boids may acheive
-        this.scale = 0.05;                                      // Scaling factor for sprite size (0.2 maximum for now)
-        this.worldview = [];                                    // Container for the other_boids in the flock
-        this.properties = [];                                   // Container for the properties from sliders in flock
-
-        // Control default behavior of boids
-        this.velocity.setMagnitude(randomNum(0, 2));            // Set random magnitude for boid's velocity
-        this.velocity.setDirection(randomNum(0, 6));            // Set random direction for boid's velocity
-
-        // Parent class member modifications
-        this.img = new Image();                                 // Create a new image for the boids
-        this.img.src = "images/Polluted_Fish.png";              // TEMPORARY: set source of the sprite image
-
-        this.scaleHeightWidth();                                // Set height and width to scaled factor of image
-
-        /* 
-        To Do: 
-            Add more graphical elements such as more sliders for different properties
-                visual radius, maxVelocity (maximum speed), maxAcceleration (maximum Force), scaling factor
-                change number of sprites being drawn?
-            Add more versions of these images to simulate changing directions 
-                Maybe find an actual sprite set that I can use
-            Clean up code organization and optimize what I can
-        */
+            { willReadFrequently: true });                  // Each penguin gets its own context to draw with
+        this.name = "Buddy";                                // Name of the penguin
+        this.x = randomNum(window.innerWidth*0.1, 
+        window.innerWidth*0.8);                             // x coordinate of penguin
+        this.y = randomNum(window.innerHeight/2, 
+        window.innerHeight*0.8);                            // y coordinate of penguin
+        this.h = 0;                                         // height of penguin
+        this.w = 0;                                         // width of penguin
+        this.idle_time = 75;                                // Time delta for idling
+        this.walk_time = 150;                               // Time delta for walking
+        this.change_time = Math.floor(randomNum(40, 110));  // Random amount of time before animation changes
+        this.cur_time = 0;                                  // Amount of time animation has been running
+        this.t_delta = this.idle_time;                      // Overall time delta for animation speeds (default is idling)
+        this.state = "idle";                                // Default animation for NPC penguin
+        this.state_change = "none";                         // Flag for state changes
+        this.move_dist = 20;                                // Distance NPC will move in animations
+        this.img = new Image();                             // Animation image for the Penguin
     }
 
-    /**************************************************************
-     * Allows the boids to be drawn onto the canvas at a specified
-       velocity and acceleration
-    **************************************************************/
+    /**********************************************************
+     Determines animation frames for penguin sprite and draws
+     the frames on each loop for a specified time delta
+    **********************************************************/
     draw() {
+        if((this.t_delta + this.prev_time) > new Date().getTime()) // Check if animation is going slower than frames
+            return;
+
+        this.prev_time = new Date().getTime();	// Get next animation time limit
+
         // Check if this is the first loop
         if(this.bk_img != null) {
-            this.put_bk_img(this.position.x, this.position.y); // Replace previous image's background
+            this.put_bk_img(this.x, this.y); // Replace previous image's background
+            this.cur_time++; // Update current amount of time in animation
         }
 
-        this.alignment(); // Steer current boid towards average velocity of boids in visual radius
-
-        this.cohesion(); // Steer current boid towards average position of boids in visual radius
-            
-        this.separation(); // Steer current boid away from boids in visual radius
-
-        this.update(); // Set the next movement of the boids
-
-        this.getBufferImage(); // Get background image data from the buffer canvas
-
-        this.drawFrame(this.position.x, this.position.y, this.w_h[0], this.w_h[1]); // Draw the current frame
+        this.animate(); // Animate the current frame
     }
 
-    /************************************************************
-     * Adds to the position and velocity vectors of the boids to 
-       simulate their changing movements
-    ************************************************************/
-    update() {
-        var change = false;                             // Create a flag for velocity change
+    /**************************************
+     Checks the sprite's current state
+     Calls appropriate animation function 
+    **************************************/
+    animate() {
+        this.update_frame(); // Update animation data (counter, img.src, h, w)
 
-        this.position.add(this.velocity);               // Add velocity to position
-        this.velocity.add(this.acceleration);           // Add acceleration to velocity
-        this.velocity.limitVector(this.maxVelocity);    // Limit velocity to the maximum speed
-        this.acceleration.multiply(0);                  // Reset acceleration to zero vector
-        change = this.checkBoundary();                  // Check if the boid is in bounds of the canvas
-        
-        if(change) // Velocity change
-            this.position.add(this.velocity);           // Add new velocity to position
+        this.getBufferImage(); // Get image data from buffer canvas
+
+        // Check if sprite is currently moving
+        if(this.state != "idle") {
+            this.checkBoundary(); // Stop sprite from moving off the screen
+
+            if(this.state != "idleLayDown")
+                this.checkCollision(); // Stop sprite from hitting other sprites
+        }
+
+        this.updateFrameData(); // Update animation frame data
+
+        this.drawFrame(this.x, this.y, this.w, this.h); // Draw the image
     }
 
-    /********************************************************
-     * Checks the visual radius around the current boid to 
-       determine the average velocity of the boids around it
-     * Updates the current acceleration with that average
-    ********************************************************/
-    alignment() {
-        var steering = new Vector_2D();     // Average velocities of boids in radius (zero vector default)
-        var total = 0;                      // Total number of boids in radius
-        var distance = 0;                   // Distance of other boids from current boid
-
-        for(var i = 0; i < this.worldview.length; i++) {  // Iterate through the flock
-            distance = this.getDistance(i);    // Get the distance between the boids
-
-            if(this.worldview[i] != this && distance < this.vis_rad) {     // Check if boid is in visual radius
-                steering.add(this.worldview[i].velocity);     // Update the steering velocity
-
-                total++; // Update the total
-            }
+    /******************************************************************
+     Checks sprite's current state and updates number of frames and
+     the time delta for the animation
+    ******************************************************************/
+    updateFrameData() {
+        switch(this.state) {
+            case "idle": 
+                this.num_frames = 11; 
+                this.t_delta = this.idle_time;
+                break;
+            case "idleLayDown": 
+                this.num_frames = 31; 
+                this.t_delta = this.idle_time;
+                break;
+            default: 
+                this.num_frames = 3; 
+                this.t_delta = this.walk_time;
+                break;
         }
 
-        if(total > 0) { // Check if there were any boids in the radius
-            steering.divide(total); // Divide by the total
-
-            steering.setMagnitude(this.maxVelocity); // Set the magnitude to maximum speed
-
-            steering.sub(this.velocity); // Subtract the current velocity
-        
-            steering.limitVector(this.maxAcceleration); // Limit the steering vector to maximum Acceleration
+        // Check if counter is out of range
+        if(this.cur_frame == this.num_frames) {
+            this.cur_frame = -1;   // Reset counter
         }
-
-        steering.multiply(this.properties[0]);
-
-        this.acceleration.add(steering); // Update the acceleration
     }
 
-    /*********************************************************
-     * Checks the visual radius around the current boid to 
-       determine the average position of the boids around it
-     * Updates the current acceleration with that average
-    *********************************************************/
-    cohesion() {
-        var steering = new Vector_2D();     // Average velocities of boids in radius (zero vector default)
-        var total = 0;                      // Total number of boids in radius
-        var distance = 0;                   // Distance of other boids from current boid
-
-        for(var i = 0; i < this.worldview.length; i++) {  // Iterate through the flock
-            distance = this.getDistance(i);    // Get the distance between the boids
-
-            // Check if boid is in visual radius (not current boid and distance not zero)
-            if(this.worldview[i] != this && distance < this.vis_rad) { 
-                steering.add(this.worldview[i].position);     // Update the steering position
-
-                total++; // Update the total
-            }
+    /******************************************************************
+     Checks sprites movement animation and updates the x,y coordinates
+     If sprite is idling there will be no change
+    ******************************************************************/
+    update_position() {
+        switch(this.state) {
+            case "walk_N":                  // North
+                this.y -= this.move_dist;
+                break;
+            case "walk_W":                  // West
+                this.x -= this.move_dist;
+                break;
+            case "walk_S":                  // South
+                this.y += this.move_dist;
+                break;    
+            case "walk_E":                  // East
+                this.x += this.move_dist;  
+                break;   
+            case "walk_NW":                 // North West
+                this.x -= this.move_dist;
+                this.y -= this.move_dist;
+                break;
+            case "walk_NE":                 // North East
+                this.x += this.move_dist;
+                this.y -= this.move_dist;
+                break;
+            case "walk_SW":                 // South West
+                this.x -= this.move_dist;
+                this.y += this.move_dist;
+                break;
+            case "walk_SE":                 // South East
+                this.x += this.move_dist;
+                this.y += this.move_dist;
+                break;
+            default: break;                 // Idling (no movement)
         }
-
-        if(total > 0) { // Check if there were any boids in the radius
-            steering.divide(total); // Divide by the total
-
-            steering.sub(this.position); // Subtract the current position
-
-            steering.setMagnitude(this.maxVelocity); // Set the magnitude to maximum speed
-
-            steering.sub(this.velocity); // Subtract the current velocity
-        
-            steering.limitVector(this.maxAcceleration); // Limit the steering vector to maximum Acceleration
-        }
-
-        steering.multiply(this.properties[1]);
-
-        this.acceleration.add(steering); // Update the acceleration
     }
 
-    /******************************************************
-     * Checks the visual radius around the current boid to 
-       determine how many boids it now needs to avoid
-    ******************************************************/
-    separation() {
-        var steering = new Vector_2D();     // Average velocities of boids in radius (zero vector default)
-        var difference;                     // Container for the difference between positions of boids
-        var total = 0;                      // Total number of boids in radius
-        var distance = 0;                   // Distance of other boids from current boid
+    /*************************************************************
+     Updates the current image being drawn on the canvas
+     Also changes the height and width for the current frame
+    *************************************************************/
+    update_frame() {
+        this.cur_frame++; // Update animation frame counter
 
-        for(var i = 0; i < this.worldview.length; i++) {  // Iterate through the flock
-            distance = this.getDistance(i);    // Get the distance between the boids
+        // Get frame index as string using the frame counter
+        var frame_idx = String(this.cur_frame);
 
-            if(this.worldview[i] != this && distance < this.vis_rad) {     // Check if boid is in visual radius
-                difference = this.diffVectors(this.position, this.worldview[i].position); // Get the difference in position
+        // Set the image source at current frame
+        this.img.src = "penguin/" + this.name + '/' + this.state + '/' + frame_idx + ".png"; 
 
-                difference.divide(distance); // Set difference to be inversely proportional to distance
+        // Update the height and width of sprite using JSON data
+        this.h = this.frames[this.name][this.state][frame_idx]["h"];
+        this.w = this.frames[this.name][this.state][frame_idx]["w"];
 
-                steering.add(difference); // Update the steering vector
+        if(this.cur_time > this.change_time) // Check if time for animation change
+            this.getRandomAnimation(); // Get a new animation for the sprite
 
-                total++; // Update the total
-            }
+        // Check if there has been a state change
+        if(this.state_change != "none") {
+            this.cur_frame = -1;            // Reset the frame counter
+            this.state = this.state_change; // Set the new state
+            this.state_change = "none";     // Reset the state change
         }
-
-        if(total > 0) { // Check if there were any boids in the radius
-            steering.divide(total); // Divide by the total
-
-            steering.setMagnitude(this.maxVelocity); // Set the magnitude to maximum speed
-
-            steering.sub(this.velocity); // Subtract the current velocity
-        
-            steering.limitVector(this.maxAcceleration); // Limit the steering vector to maximum Acceleration
-        }
-
-        steering.multiply(this.properties[2]);
-
-        this.acceleration.add(steering); // Update the acceleration
+        else
+            this.update_position(); // Update x,y coordinates based on current state
     }
 
-    /******************************************************************************
-     * Checks for boids moving off of the screen and updates velocity if necessary
-    ******************************************************************************/
-    checkBoundary() {
-        var onXEdge = false, onYEdge = false; // Create flags for out of boundary
+    /********************************************************************
+     Checks if the sprite is going to move off of the edge of the screen
+    ********************************************************************/
+     checkBoundary() {
+        var change = false;
 
-        // Check if the boid is at a boundary and set the appropriate flag
-        if(this.position.x + this.w_h[0] > window.innerWidth * 0.97) {   // Boid moving too far right
-            onXEdge = true;
+        // Check if at TOP or BOTTOM of the screen
+        if(this.y - this.h/7 < window.innerHeight/3) { // Walking towards TOP of screen and hitting it
+            if(this.state == "walk_NW" || this.state == "walk_N" || this.state == "walk_NE")
+                change = true;
         }
-        else if(this.position.x < 0) {   // Boid moving too far left
-            onXEdge = true;
+        else if(this.y + 1.3*this.h > window.innerHeight) { // Walking towards BOTTOM of screen and hitting it
+            if(this.state == "walk_SW" || this.state == "walk_S" || this.state == "walk_SE")
+                change = true;
         }
-        if(this.position.y + this.w_h[1] > window.innerHeight * 0.97) {  // Boid moving too far down
-            onYEdge = true;
-        }
-        else if(this.position.y < 0) {   // Boid moving too far up
-            onYEdge = true;
-        }
-
-        // Check if either flag was set and inverse the velocity component
-        if(onXEdge)
-            this.velocity.x *= -1;
-        if(onYEdge)
-            this.velocity.y *= -1;
-
-        if(onXEdge || onYEdge) // Return true if either flag was set
-            return true;
         
-        return false; // No change was made
+        // Check if at LEFT or RIGHT of the screen
+        if(this.x - this.w/6.5 < 0) { // Walking towards the LEFT of the screen and hitting it
+            if(this.state == "walk_W" || this.state == "walk_NW" || this.state == "walk_SW")
+                change = true;   
+        }
+        else if(this.x + 1.75*this.w > window.innerWidth) { // Walking towards the RIGHT of the screen and hitting it
+            if(this.state == "walk_E" || this.state == "walk_NE" || this.state == "walk_SE")
+                change = true;
+        }
+
+        if(change)  {        // Check if flag was set
+            this.state_change = "idle"; // Reset flag
+            this.getRandomAnimation();  // Get a random animation (except for idling)
+        }
+    }
+
+    /********************************************************************
+     Checks if the sprite is going to hit another sprite on the canvas
+    ********************************************************************/
+    checkCollision() {
+        var change = false; // Set flags for x and y collisions
+
+        // Check if any point on the sprite's outer edge facing the other sprite is colliding
+        if(this.y + this.h >= this.worldview[0].y && this.y <= this.worldview[0].y + this.worldview[0].h)
+            if(this.x + this.w >= this.worldview[0].x && this.x <= this.worldview[0].x + this.worldview[0].w)
+                change = true;
+
+        // If there was a collision, set the sprite to desired animation
+        if(change) {
+            this.state_change = "idleLayDown";
+            alert("Man i'm dead.");
+        }
+    }
+
+    /*********************************************************************
+     Set a random animation for the NPC sprite to simulate random pathing
+    *********************************************************************/
+    getRandomAnimation() {
+        this.change_time = Math.floor(randomNum(40,110));   // Reset random animation time
+        this.cur_time = 0;                                  // Reset the current time
+        var state_num;                                      // Stores the random change number
+
+        // Check if at a boundary
+        if(this.state_change == "none")
+            state_num = Math.floor(randomNum(-1, 9)); // Get any random animation
+        else
+            state_num = Math.floor(randomNum(0, 9)); // Get any random animation except for idle
+
+
+        // Each animation corresponds to #0-8
+        switch(state_num) {
+            case 0: this.state_change = "idle"; break;
+            case 1: this.state_change = "walk_N"; break;
+            case 2: this.state_change = "walk_W"; break;
+            case 3: this.state_change = "walk_S"; break;
+            case 4: this.state_change = "walk_E"; break;
+            case 5: this.state_change = "walk_NW"; break;
+            case 6: this.state_change = "walk_NE"; break;
+            case 7: this.state_change = "walk_SW"; break;
+            case 8: this.state_change = "walk_SE"; break;
+            default: break;
+        }
     }
 
     /************************************************************
      * Stores the background image data from the buffer context
-       of each boid to avoid the seaweed effect
+       of each penguin to avoid the seaweed effect
     ************************************************************/
        getBufferImage() {
-        this.bk_img = this.buffer.getImageData(this.position.x, this.position.y, this.w_h[0] + 3, this.w_h[1] + 3);
+        this.bk_img = this.buffer.getImageData(this.x, this.y, this.w + 3, this.h + 3);
     }
+}
 
-    /*********************************************
-     * Calculates the distance between two boids
-    *********************************************/
-    getDistance(idx) {
-        var dx = this.worldview[idx].position.x - this.position.x;  // Calculate delta x
-        var dy = this.worldview[idx].position.y - this.position.y;  // Calculate delta y
-      
-        return Math.sqrt((dx*dx) + (dy*dy)); // Get the distance -> sqrt(dx^2 + dy^2)
-    }
-
-    /**************************************************************
-     * Sets the height and width to the size of the sprite image
-       multiplied by some scaling factor
-    **************************************************************/
-       scaleHeightWidth() {
-        this.w_h[0] = this.img.width * this.scale;
-        this.w_h[1] = this.img.height * this.scale;
-    }
-
-    /****************************************************************
-     * Returns the difference between two vectors as a single vector
-    ****************************************************************/
-    diffVectors(vector1, vector2) {
-        var newVector = new Vector_2D();    // Create a new vector to store the difference
-        newVector.setVector(vector1);       // Set that vector to first vector's values
-        newVector.sub(vector2);             // Get the difference
-        return newVector;                   // Return the difference
-    }
-} 
-
-/*******************************************************
- * Flock class for the sprites
- * It will access the Boid class properties for
-    * canvas context
+/************************************************************************
+ * Player class for the sprites
+ * It will access the Sprite class properties for
+    * Canvas context
  * Class adds:
-    * An array of boids to create the animations
-    * A variable for the flock size
-    * An array of integers to store input element values
-        * Alignment, Cohesion, and Separation 
- *******************************************************/
-class Flock extends Boid {
+    * The current state of the sprite
+    * A flag for when the state of the sprite is changed
+    * The distance sprite will move in a given direction
+        * N, W, S, E, NW, NE, SW, SE
+        * Adds walking distance and other distances can be added here
+ ************************************************************************/
+class Player extends Sprite {
     constructor(context) {
         super(context);
-        this.flock = [];                // Container for flock of boids
-        this.flock_size = 200;          // Controls the amount of boids created
-        this.inputs = [0, 0, 0];        // Container for input element values
+        this.state = "idle";                // Current state of Sprite (default is idling)
+        this.state_change = "none";         // Container for state change (default is none)
+        this.walk_dist = 20;                // Walking distance
+        this.move_dist = this.walk_dist;    // Movement distance (default walking distance)
+
+        // Event listeners for animation movements
+        document.addEventListener("keydown", this.moveSprite.bind(this));   // User presses key
+        document.addEventListener("click", this.moveSprite.bind(this));     // User clicks mouse
+    }
+
+    /*************************************************************
+     Checks when user presses down a key to change animations
+     It also checks for mouse clicks
+    *************************************************************/
+     moveSprite(key) {
+                                                        // ARROW KEYS OR SPACEBAR
+        if(key.type == "keydown") {
+            switch(key.keyCode) {
+                case 32:                                // Spacebar -> stop
+                    this.state_change = "idle";         // Stop the sprite and return to idling
+                    break;
+                case 37:                                // Left -> Walk_W
+                    this.state_change = "walk_W";
+                    break;
+                case 38:                                // Up -> Walk_N
+                    this.state_change = "walk_N";
+                    break;
+                case 39:                                // Right -> Walk_E
+                    this.state_change = "walk_E";
+                    break;
+                case 40:                                // Down -> Walk_S
+                    this.state_change = "walk_S";
+                    break;
+                default: return;
+            }
+            key.preventDefault();                       //Prevents default arrow keypress behavior
+        }                                               
+        else if(key.type == "click") {                  // MOUSE CLICK
+            if(key.clientX < this.x) {                  // LEFT SECTION
+                if(key.clientY < this.y)                // Click is in top left of screen
+                    this.state_change = "walk_NW";
+                else if(key.clientY > this.y + this.h)  // Click is in bottom left of screen
+                    this.state_change = "walk_SW";
+                else
+                    this.state_change = "walk_W";       // Click is to left of the screen
+            }
+            else if(key.clientX > this.x + this.w) {    // RIGHT SECTION
+                if(key.clientY < this.y)                // Click is to top right of screen
+                    this.state_change = "walk_NE";
+                else if(key.clientY > this.y + this.h)  // Click is to bottom right of screen
+                    this.state_change = "walk_SE";
+                else   
+                    this.state_change = "walk_E";       // Click is to right of screen
+            }
+            else {                                      // MIDDLE SECTION
+                if(key.clientY < this.y)                // Click is to top of screen
+                    this.state_change = "walk_N";
+                else if(key.clientY > this.y + this.h)  // Click is to bottom of screen
+                    this.state_change = "walk_S"
+                else {
+                    this.state_change = "idle";         // User clicked the sprite (stops it moving)
+                }
+            }
+        }
+        this.move_dist = this.walk_dist;                // Set walking distance
+    }
+}
+
+/**************************************************
+ * UserPenguin class for the sprites
+ * It will access the Player class properties for
+    * Canvas context
+ * Class adds:
+    * The buffer canvas and context for the sprite
+    * The x,y,w,h for the sprite image
+    * The idle animation time
+    * The walking animation time
+    * The time delta for the animation speeds (t_delta)
+        * Adds deltas for different states  
+ *************************************************/
+class UserPenguin extends Player {
+    constructor(context) {
+        super(context);
+        this.canvas = document.createElement('canvas');     // Each penguin gets its own buffer canvas
+        this.buffer = this.canvas.getContext('2d', 
+            { willReadFrequently: true });                  // Each penguin gets its own context to draw with
+            this.name = "Buddy";                                // Name of the penguin
+        this.x = 0;                                         // x coordinate of penguin
+        this.y = 0;                                         // y coordinate of penguin
+        this.h = 0;                                         // height of penguin
+        this.w = 0;                                         // width of penguin
+        this.idle_time = 75;                                // Time delta for idling
+        this.walk_time = 150;                               // Time delta for walking
+        this.t_delta = this.idle_time;                      // Overall time delta for animation speeds (default is idling)
+        this.img = new Image();                             // Animation image for the Penguin
+    }
+
+    /**********************************************************
+     Determines animation frames for penguin sprite and draws
+     the frames on each loop for a specified time delta
+    **********************************************************/
+    draw() {
+        if((this.t_delta + this.prev_time) > new Date().getTime()) // Check if animation is going slower than frames
+            return;
+
+        this.prev_time = new Date().getTime();	// Get next animation time limit
+
+        // Check if this is the first loop
+        if(this.bk_img != null) {
+            this.put_bk_img(this.x, this.y); // Replace previous image's background
+        }
+
+        this.animate(); // Animate the current frame
+    }
+
+    /**************************************
+     Checks the sprite's current state
+     Calls appropriate animation function 
+    **************************************/
+    animate() {
+        this.update_frame(); // Update animation data (counter, img.src, h, w)
+
+        this.getBufferImage(); // Get image data from buffer canvas
+
+        // Check if sprite is currently moving
+        if(this.state != "idle") {
+            this.checkBoundary(); // Stop sprite from moving off the screen
+
+            if(this.worldview[0].state != "idleLayDown")
+                this.checkCollision(); // Stop sprite from colliding with other sprites
+        }
+
+        this.updateFrameData(); // Update animation frame data
+
+        this.drawFrame(this.x, this.y, this.w, this.h); // Draw the image
+    }
+
+    /******************************************************************
+     Checks sprite's current state and updates number of frames and
+     the time delta for the animation
+    ******************************************************************/
+     updateFrameData() {
+        switch(this.state) {
+            case "idle": 
+                this.num_frames = 11; 
+                this.t_delta = this.idle_time;
+                break;
+            default: 
+                this.num_frames = 3; 
+                this.t_delta = this.walk_time;
+                break;
+        }
+
+        // Check if counter is out of range
+        if(this.cur_frame == this.num_frames) {
+            this.cur_frame = -1;   // Reset counter
+        }
+    }
+
+    /******************************************************************
+     Checks sprites movement animation and updates the x,y coordinates
+     If sprite is idling there will be no change
+    ******************************************************************/
+    update_position() {
+        switch(this.state) {
+            case "walk_N":                  // North
+                this.y -= this.move_dist;
+                break;
+            case "walk_W":                  // West
+                this.x -= this.move_dist;
+                break;
+            case "walk_S":                  // South
+                this.y += this.move_dist;
+                break;    
+            case "walk_E":                  // East
+                this.x += this.move_dist;  
+                break;   
+            case "walk_NW":                 // North West
+                this.x -= this.move_dist;
+                this.y -= this.move_dist;
+                break;
+            case "walk_NE":                 // North East
+                this.x += this.move_dist;
+                this.y -= this.move_dist;
+                break;
+            case "walk_SW":                 // South West
+                this.x -= this.move_dist;
+                this.y += this.move_dist;
+                break;
+            case "walk_SE":                 // South East
+                this.x += this.move_dist;
+                this.y += this.move_dist;
+                break;
+            default: break;                 // Idling (no movement)
+        }
+    }
+
+    /*************************************************************
+     Updates the current image being drawn on the canvas
+     Also changes the height and width for the current frame
+    *************************************************************/
+    update_frame() {
+        this.cur_frame++; // Update animation frame counter
+
+        // Get frame index as string using the frame counter
+        var frame_idx = String(this.cur_frame);
+
+        // Set the image source at current frame
+        this.img.src = "penguin/" + this.name + '/' + this.state + '/' + frame_idx + ".png"; 
+
+        // Update the height and width of sprite using JSON data
+        this.h = this.frames[this.name][this.state][frame_idx]["h"];
+        this.w = this.frames[this.name][this.state][frame_idx]["w"];
+
+        // Check if first loop and set x,y position to center of screen
+        if(this.bk_img == null) {
+            this.x = window.innerWidth/2 - this.w/2;
+            this.y = window.innerHeight/2 - this.h/2;
+        }
+
+        // Check if there has been a state change
+        if(this.state_change != "none") {
+            this.cur_frame = -1;            // Reset the frame counter
+            this.state = this.state_change; // Set the new state
+            this.state_change = "none";     // Reset the state change
+        }
+        else
+            this.update_position(); // Update x,y coordinates based on current state
+    }
+
+    /********************************************************************
+     Checks if the sprite is going to move off of the edge of the screen
+    ********************************************************************/
+     checkBoundary() {
+        var change = false;
+
+        // Check if at TOP or BOTTOM of the screen
+        if(this.y - this.h/7 < window.innerHeight/3) { // Walking towards TOP of screen and hitting it
+            if(this.state == "walk_NW" || this.state == "walk_N" || this.state == "walk_NE")
+                change = true;
+        }
+        else if(this.y + 1.3*this.h > window.innerHeight) { // Walking towards BOTTOM of screen and hitting it
+            if(this.state == "walk_SW" || this.state == "walk_S" || this.state == "walk_SE")
+                change = true;
+        }
+        
+        // Check if at LEFT or RIGHT of the screen
+        if(this.x - this.w/6.5 < 0) { // Walking towards the LEFT of the screen and hitting it
+            if(this.state == "walk_W" || this.state == "walk_NW" || this.state == "walk_SW")
+                change = true;   
+        }
+        else if(this.x + 1.75*this.w > window.innerWidth) { // Walking towards the RIGHT of the screen and hitting it
+            if(this.state == "walk_E" || this.state == "walk_NE" || this.state == "walk_SE")
+                change = true;
+        }
+
+        if(change)  {        // Check if flag was set
+            this.state_change = "idle";  // Reset flag
+        }
+    }
+
+    /********************************************************************
+     Checks if the sprite is going to hit another sprite on the canvas
+    ********************************************************************/
+     checkCollision() {
+        var change = false; // Set flags for x and y collisions
+
+        // Check if any point on the sprite's outer edge facing the other sprite is colliding
+        if(this.y + this.h >= this.worldview[0].y && this.y <= this.worldview[0].y + this.worldview[0].h)
+            if(this.x + this.w >= this.worldview[0].x && this.x <= this.worldview[0].x + this.worldview[0].w)
+                change = true;
+
+        // If there was a collision, set the sprite to desired animation
+        if(change) {
+            this.state_change = "idle";
+        }
     }
 
     /************************************************************
-     * Starts the animation process for each boid in the flock
+     * Stores the background image data from the buffer context
+       of each penguin to avoid the seaweed effect
     ************************************************************/
-    drawFlock() {
-        for(var i = 0; i < this.flock.length; i++) { // Iterate through the flock
-            this.flock[i].draw();  // Draw each boid
-        }
-    }
-
-    /********************************************************
-     * Fills the flock array with boid sprites for animating
-       in the draw loop
-    ********************************************************/
-    createFlock() {
-        for(var i = 0; i < this.flock_size; i++) {     // Loop for as many boids as desired
-            this.flock.push(new Boid(this.ctx));    // Fill the flock array
-        }
-
-        this.fillReferenceArrays();                    // Fill each boids worldview array
-    }
-
-    /************************************************************
-     * Fills the boids worldview array and properties array with 
-       shallow references to the corresponding flock properties
-    ************************************************************/
-    fillReferenceArrays() {
-        for(var i = 0; i < this.flock_size; i++) {
-            this.flock[i].worldview = this.flock;       // Each boid has a shallow reference to flock
-            this.flock[i].properties = this.inputs;    // Each boid also has shallow reference to sliders
-        }
-    }
-
-    /*********************************************
-     * Updates the value of the alginment slider
-    *********************************************/
-    getAlignment(alignment) {
-        this.inputs[0] = alignment.value;
-    }
-
-    /*********************************************
-     * Updates the value of the cohesion slider
-    *********************************************/
-    getCohesion(cohesion) {
-        this.inputs[1] = cohesion.value;
-    }
-
-    /*********************************************
-     * Updates the value of the separation slider
-    *********************************************/
-    getSeparation(separation) {
-        this.inputs[2] = separation.value;
+       getBufferImage() {
+        this.bk_img = this.buffer.getImageData(this.x, this.y, this.w + 3, this.h + 3);
     }
 }
