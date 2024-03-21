@@ -26,5 +26,20 @@ p {
     top: 0%; 
     width:50%; 
     height: 0%;
-    z-index: -1;
+}
+
+.return-button {
+    position: absolute;
+    top: 20%;
+    left: 47%;
+    box-sizing: border-box;
+}
+
+.button {
+    background-color: #3071A9;
+    border-radius: 100%;
+    border-width: 3px;
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    font-size: 20px;
+    color: rgb(255, 255, 255);
 }
