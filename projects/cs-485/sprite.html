@@ -33,7 +33,7 @@
 			const Penguin1 = new NPCPenguin(context);								// Create an NPC penguin to interact with the player
 
 			// Load the JSON file and store data in Penguin sprite object
-			$.getJSON("penguin/animationData.json", function(data){
+			$.getJSON("images/penguin/animationData.json", function(data){
 				PlayerPenguin.frames = data;	// JSON is now loaded into Penguin object
 				Penguin1.frames = data;
 				console.log(data);

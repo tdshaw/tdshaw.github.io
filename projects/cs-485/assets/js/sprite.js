@@ -215,7 +215,7 @@ class NPCPenguin extends Sprite {
         var frame_idx = String(this.cur_frame);
 
         // Set the image source at current frame
-        this.img.src = "penguin/" + this.name + '/' + this.state + '/' + frame_idx + ".png"; 
+        this.img.src = "images/penguin/" + this.name + '/' + this.state + '/' + frame_idx + ".png"; 
 
         // Update the height and width of sprite using JSON data
         this.h = this.frames[this.name][this.state][frame_idx]["h"];
@@ -545,7 +545,7 @@ class UserPenguin extends Player {
         var frame_idx = String(this.cur_frame);
 
         // Set the image source at current frame
-        this.img.src = "penguin/" + this.name + '/' + this.state + '/' + frame_idx + ".png"; 
+        this.img.src = "images/penguin/" + this.name + '/' + this.state + '/' + frame_idx + ".png"; 
 
         // Update the height and width of sprite using JSON data
         this.h = this.frames[this.name][this.state][frame_idx]["h"];
