@@ -547,8 +547,6 @@ class UserPenguin extends Player {
         // Set the image source at current frame
         this.img.src = "images/penguin/" + this.name + '/' + this.state + '/' + frame_idx + ".png"; 
 
-        console.log(this.name, this.state, frame_idx);
-
         // Update the height and width of sprite using JSON data
         this.h = this.frames[this.name][this.state][frame_idx]["h"];
         this.w = this.frames[this.name][this.state][frame_idx]["w"];
