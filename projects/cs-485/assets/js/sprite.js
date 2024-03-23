@@ -81,7 +81,7 @@ class NPCPenguin extends Sprite {
         this.canvas = document.createElement('canvas');     // Each penguin gets its own buffer canvas
         this.buffer = this.canvas.getContext('2d', 
             { willReadFrequently: true });                  // Each penguin gets its own context to draw with
-        this.name = "Buddy";                                // Name of the penguin
+        this.name = "buddy";                                // Name of the penguin
         this.x = randomNum(window.innerWidth*0.1, 
         window.innerWidth*0.8);                             // x coordinate of penguin
         this.y = randomNum(window.innerHeight/2, 
@@ -423,7 +423,7 @@ class UserPenguin extends Player {
         this.canvas = document.createElement('canvas');     // Each penguin gets its own buffer canvas
         this.buffer = this.canvas.getContext('2d', 
             { willReadFrequently: true });                  // Each penguin gets its own context to draw with
-            this.name = "Buddy";                                // Name of the penguin
+            this.name = "buddy";                            // Name of the penguin
         this.x = 0;                                         // x coordinate of penguin
         this.y = 0;                                         // y coordinate of penguin
         this.h = 0;                                         // height of penguin
@@ -546,6 +546,8 @@ class UserPenguin extends Player {
 
         // Set the image source at current frame
         this.img.src = "images/penguin/" + this.name + '/' + this.state + '/' + frame_idx + ".png"; 
+
+        console.log(this.name, this.state, frame_idx);
 
         // Update the height and width of sprite using JSON data
         this.h = this.frames[this.name][this.state][frame_idx]["h"];
