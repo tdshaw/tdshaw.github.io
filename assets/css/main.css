@@ -1991,15 +1991,15 @@ input, select, textarea {
 	button,
 	.button {
 		position: relative;
-		display: inline-block;
-		border-radius: 0.5em;
-		color: #E4E4E4 !important;
+		display:inline-flexbox;
+		border-radius: 0.9em;
+		color: #81A0F9 !important;
 		text-decoration: none;
 		padding: 0.3em 0.1em;
-		background-color: transparent;
+		background-color: rgba(24,35,48,0.9);
 		border: 0;
 		cursor: pointer;
-		font-size: 7dvw;
+		font-size: 5dvw;
 	}
 
 		input[type="button"]:hover,
@@ -2015,7 +2015,7 @@ input, select, textarea {
 			-webkit-transition: background-color 0.35s ease-in-out;
 			-ms-transition: background-color 0.35s ease-in-out;
 			transition: background-color 0.35s ease-in-out;
-			background-color: rgb(105, 105, 116);
+			background-color: #16202E;
 		}
 
 		input[type="button"]:active,
